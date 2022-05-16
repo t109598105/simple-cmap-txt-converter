@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+
+<html>
+    <head>
+        <style>
+            * {
+                padding: 0;
+                margin: 0;
+            }
+
+            #t-area {
+                padding: 20px;
+                margin: 10px;
+                border-style: solid;
+            }
+            .item {
+                margin: 20px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="item">
+            <h1 style="margin-bottom: 10px"> Select a json file </h1>
+            <input type="file" id="input-file">
+        </div>
+        <div class="item">
+            <h1 style="margin-bottom: 10px"> All contain Glyph </h1>
+            <div style="margin-bottom: 10px"> <a href="javasript:void(0);" id="downl"> Download As Txt </a> </div>
+            <div id="t-area"></div>
+        </div>
+        
+        
+        <script>
+
+            var txt = null;
+            var fontname = 'output';
+
+            document.getElementById('input-file').onclick = function(){
+                this.value = null;
+            };
+
+            document.getElementById('downl').onclick  = function(){
+                if(txt === null) {
+                    return alert("Txt not generated");
+                }
+
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([txt], {type: 'text/plain'}));
+                a.download = fontname + '.txt';
+                a.click();
+            };
+
+            document.getElementById('input-file').onchange = function(){
+                if(/\.json$/.test(this.files[0].name)){
+                    
+                    var fr = new FileReader();
+                    fr.onload = function(){
+                        try {
+                            var jsonData = JSON.parse(fr.result);
+                            var gc = jsonData.glyph_cmap;
+                            if(jsonData.font_family && jsonData.font_family[0]){
+                                fontname = jsonData.font_family[0];
+                            }
+                            if(typeof gc != 'undefined'){
+                                var contain = '';
+                                for(var i in gc){
+                                    contain += String.fromCodePoint((i));
+                                }
+                                document.getElementById('t-area').innerHTML = contain;
+                                txt = contain;
+                            }   
+                            else {
+                                console.error('No cmap data');
+                            }
+                        }
+                        catch(e) {
+                            console.error('Not a valid json file');
+                        }
+
+                    };
+                    fr.readAsText(this.files[0]);
+                }
+            }
+
+        </script>
+    </body>
+
+</html>
